@@ -8,9 +8,9 @@
 <body>
     <div class="container d-flex align-items-center text-center vh-100">
         <div class="container-fluid">
-            <p class="fs-3"> <span class="text-danger">Unauthorized!</span> access.</p>
+            <p class="fs-3"> <span class="text-danger">Oops!</span> page not found.</p>
             <p class="lead">
-                You don't have permission to access this page.
+                The page you're looking for doesn't exist or has been moved.
             </p>
             <a href="index.php" class="btn btn-primary">Go Home</a>
         </div>

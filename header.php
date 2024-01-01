@@ -22,12 +22,14 @@
                             <a class="nav-link" href="notifications.php">
                                 Notifications
                             </a>
-                        </li>
-                        <li class="nav-item">
+                        </li>';
+                    if ($userData["type"] === "organizer" || $userData["type"] === "admin") {
+                        echo '<li class="nav-item">
                             <a class="nav-link" href="settings.php">
                                 Settings
                             </a>
                         </li>';
+                    }
                 }
                 ?>
             </ul>
@@ -37,7 +39,7 @@
                         <a type="button" class="btn btn-danger" href="logout.php">Logout</a>';
             } else {
                 echo '<a type="button" class="btn btn-outline-light me-2" href="login.php">Login</a>
-                    <a type="button" class="btn btn-light" href="register.php">Sign-up</a>';
+                    <a type="button" class="btn btn-light" href="register.php">Register</a>';
             }
             ?>
         </div>

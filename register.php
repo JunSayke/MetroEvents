@@ -1,6 +1,11 @@
 <?php
 include("helper.php");
 
+if ($userData) {
+    header("Location: unauthorized.php");
+    exit();
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = sanitize_inputs($_POST["name"]);
     $username = sanitize_inputs($_POST["username"]);
@@ -20,10 +25,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         exit();
     }
-}
-if ($userData) {
-    header("Location: unauthorized.php");
-    exit();
 }
 ?>
 <html>

@@ -1,9 +1,25 @@
 <?php
 include("helper.php");
-if (!$userData) {
+
+if ($userData === null || $userData["type"] !== "organizer") {
     header("Location: unauthorized.php");
     exit();
 }
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $title = sanitize_inputs($_POST["title"]);
+    $description = sanitize_inputs($_POST["description"]);
+    $category = sanitize_inputs($_POST["category"]);
+    $date = sanitize_inputs($_POST["date"]);
+
+    $result = $eventManager->create_event_json($title, $description, $category, $date, $userData["id"]);
+
+    if ($result) {
+        header("Location: " . $_SERVER["PHP_SELF"]);
+    }
+    exit();
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -22,7 +38,7 @@ if (!$userData) {
     <?php include("header.php") ?>
     <div class="container py-5">
         <h2 class="mb-4">Create a New Event</h2>
-        <form action="create_event.php" method="post">
+        <form action="<?php $_SERVER["PHP_SELF"] ?>" method="post">
             <div class="mb-3">
                 <label for="title" class="form-label">Title</label>
                 <input type="text" class="form-control" id="title" name="title" required>
@@ -34,6 +50,10 @@ if (!$userData) {
             <div class="mb-3">
                 <label for="category" class="form-label">Category</label>
                 <input type="text" class="form-control" id="category" name="category" required>
+            </div>
+            <div class="mb-3">
+                <label for="date" class="form-label">Event Time</label>
+                <input type="datetime-local" class="form-control" id="date" name="date" min="<?php echo date('Y-m-d\TH:i'); ?>" required>
             </div>
             <button type="submit" class="btn btn-primary">Create Event</button>
         </form>

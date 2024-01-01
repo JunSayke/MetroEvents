@@ -75,7 +75,6 @@ class UserManager
             "password" => $password,
         ];
         $filepath = $this->get_user_json_path($userData["id"]);
-        echo "TEST" . $filepath;
         $filename = pathinfo($filepath, PATHINFO_FILENAME);
 
         // Rename the file if the user id has changed.
@@ -133,5 +132,20 @@ class UserManager
         //     "subscribers" => [$userId],
         // ]);
         // add_user_notification($userId, $notifId);
+    }
+
+    function cancel_organizer_request($userId)
+    {
+        $data = $this->get_json_data($this->pendingOrganizerJsonFile);
+
+        $data = array_diff($data, [$userId]);
+        file_put_contents($this->pendingOrganizerJsonFile, json_encode($data, JSON_PRETTY_PRINT));
+    }
+
+    function get_request_organizer_list()
+    {
+        $data = $this->get_json_data($this->pendingOrganizerJsonFile);
+
+        return isset($data) ? $data : [];
     }
 }

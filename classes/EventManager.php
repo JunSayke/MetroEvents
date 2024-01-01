@@ -14,11 +14,15 @@ class EventManager
 
     function get_json_data($filepath)
     {
+
         if (!file_exists($filepath)) {
             throw new Exception("Filepath cannot be found.");
         }
 
         $data = file_get_contents($filepath);
+        if (!$data) {
+            return [];
+        }
         return json_decode($data, true);
     }
 
@@ -27,13 +31,14 @@ class EventManager
         return $this->eventsJsonFolder . $eventId . ".json";
     }
 
-    function create_event_json($title, $description, $category, $organizer, $participants = [], $upvotes = [])
+    function create_event_json($title, $description, $category, $date, $organizer, $participants = [], $upvotes = [])
     {
         $eventData = [
             "id" => uniqid("event"),
             "title" => $title,
             "description" => $description,
             "category" => $category,
+            "date" => $date,
             "organizer" => $organizer,
             "participants" => $participants,
             "upvotes" => $upvotes,
@@ -41,6 +46,7 @@ class EventManager
         $json = json_encode($eventData, JSON_PRETTY_PRINT);
         $filepath = $this->get_event_json_path($eventData["id"]);
         file_put_contents($filepath, $json);
+        return $eventData["id"];
     }
 
     function get_all_events()
@@ -81,10 +87,16 @@ class EventManager
         file_put_contents($this->reviewsJsonFile, json_encode($reviewData, JSON_PRETTY_PRINT));
     }
 
-    function create_review($reviewData)
+    function create_review($review, $author, $eventId)
     {
         $data = $this->get_json_data($this->reviewsJsonFile);
-        $reviewData["id"] = uniqid("review");
+        $reviewData = [
+            "id" => uniqid("review"),
+            "review" => $review,
+            "timestamp" => date("Y-m-d H:i:s"),
+            "userId" => $author,
+            "eventId" => $eventId,
+        ];
         $data[$reviewData["id"]] = $reviewData;
         file_put_contents($this->reviewsJsonFile, json_encode($data, JSON_PRETTY_PRINT));
         return $reviewData["id"];
@@ -96,6 +108,19 @@ class EventManager
 
         unset($reviewData[$reviewId]);
         file_put_contents($this->reviewsJsonFile, json_encode($reviewData, JSON_PRETTY_PRINT));
+    }
+
+    function get_reviews($eventId)
+    {
+        $reviewData = $this->get_json_data($this->reviewsJsonFile);
+        $reviews = [];
+
+        foreach ($reviewData as $review) {
+            if ($review["eventId"] === $eventId) {
+                $reviews[] = $review;
+            }
+        }
+        return $reviews;
     }
 
     function upvote_event($eventId, $userId)
@@ -112,6 +137,20 @@ class EventManager
 
         $eventData["upvotes"] = array_diff($eventData["upvotes"], [$userId]);
         file_put_contents($this->get_event_json_path($eventId), json_encode($eventData, JSON_PRETTY_PRINT));
+    }
+
+    function get_event_participation_request($eventId)
+    {
+        $data = $this->get_json_data($this->pendingParticipationJsonFile);
+
+        return isset($data[$eventId]) ? $data[$eventId] : [];
+    }
+
+    function get_all_participation_request()
+    {
+        $data = $this->get_json_data($this->pendingParticipationJsonFile);
+
+        return isset($data) ? $data : [];
     }
 
     function request_user_event_participation($userId, $eventId)
@@ -138,5 +177,13 @@ class EventManager
         //     "subscribers" => [$userId],
         // ]);
         // add_user_notification($userId, $notifId);
+    }
+
+    function cancel_user_event_participation($userId, $eventId)
+    {
+        $data = $this->get_json_data($this->pendingParticipationJsonFile);
+
+        $data[$eventId] = array_diff($data[$eventId], [$userId]);
+        file_put_contents($this->pendingParticipationJsonFile, json_encode($data, JSON_PRETTY_PRINT));
     }
 }

@@ -6,7 +6,6 @@ if ($userData === null) {
 }
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -28,8 +27,12 @@ if ($userData === null) {
             <div class="col">
                 <div class="card shadow bg-light">
                     <div class="card-body">
-                        <h5 class="card-title">Notification Title 1</h5>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h5 class="card-title">Notification Title 1</h5>
+                            <small class="text-muted">4 hours ago</small>
+                        </div>
                         <p class="card-text text-muted text-truncate">Notification body text goes here.</p>
+
                         <a href="#" class="btn btn-primary">View Details</a>
                     </div>
                 </div>
@@ -37,7 +40,10 @@ if ($userData === null) {
             <div class="col">
                 <div class="card shadow bg-light">
                     <div class="card-body">
-                        <h5 class="card-title">Notification Title 2</h5>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h5 class="card-title">Notification Title 2</h5>
+                            <small class="text-muted">A long time ago</small>
+                        </div>
                         <p class="card-text text-muted text-truncate">Notification body text goes here.</p>
                         <a href="#" class="btn btn-primary">View Details</a>
                     </div>

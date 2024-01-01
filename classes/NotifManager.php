@@ -18,13 +18,14 @@ class NotifManager
         return json_decode($data, true);
     }
 
-    function create_notifications($title, $body, $subscribers = [])
+    function create_notifications($title, $body, $timestamp, $subscribers = [])
     {
         $data = $this->get_json_data();
         $notifData = [
             "id" => uniqid("notif"),
             "title" => $title,
             "body" => $body,
+            "timestamp" => $timestamp,
             "subscribers" => $subscribers,
         ];
         $data[$notifData["id"]] = $notifData;
