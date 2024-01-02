@@ -78,10 +78,10 @@ function logout()
 function get_events_html()
 {
     global $eventManager, $userManager, $userData;
-    $eventsId = $eventManager->get_all_events();
+    $eventsId = array_reverse($eventManager->get_all_events());
     $html = "";
     if (empty($eventsId)) {
-        echo '<p class="lead">No events yet.</p>';
+        $html = '<p class="lead text-center">No events yet.</p>';
     }
 
     foreach ($eventsId as $eventId) {
@@ -93,17 +93,18 @@ function get_events_html()
         $actionButton = "";
         $upvoteButton = '<span class="badge bg-primary rounded-pill">Upvote: ' . $upvoteCount . '</span>';
         if ($userData) {
-            if (($userData['id'] == $event['organizer'] && $userData["type"] === "organizer") || $userData["type"] === "admin") {
+            $uid = $userManager->extract_userid($userData['id']);
+            if (($uid == $event['organizer'] && $userData["type"] === "organizer") || $userData["type"] === "admin") {
                 $actionButton = '<button class="action-btn btn btn-outline-danger" id="cancel-event-btn" data-event-id="' . $event['id'] . '">Cancel Event</button>';
-            } else if (in_array($userData['id'], $event['participants'])) {
+            } else if (in_array($uid, $event['participants'])) {
                 $actionButton = '<button class="action-btn btn btn-outline-danger" id="leave-event-btn" data-event-id="' . $event['id'] . '">Leave</button>';
-            } else if (in_array($userData['id'], $eventManager->get_event_participation_request($event["id"]))) {
+            } else if (in_array($uid, $eventManager->get_event_participation_request($event["id"]))) {
                 $actionButton = '<button class="action-btn btn btn-outline-danger" id="cancel-join-event-btn" data-event-id="' . $event['id'] . '">Cancel Request</button>';
             } else {
                 $actionButton = '<button class="action-btn btn btn-outline-success" id="join-event-btn" data-event-id="' . $event['id'] . '">Join</button>';
             }
 
-            $upvoteButton = in_array($userData["id"], $event["upvotes"])
+            $upvoteButton = in_array($uid, $event["upvotes"])
                 ? '<button class="action-btn btn btn-primary" id="remove-upvote-btn" data-event-id="' . $event['id'] . '">Upvote <i class="fas fa-thumbs-up"></i> <span class="badge bg-primary rounded-pill">' . $upvoteCount . '</span></button>'
                 : '<button class="action-btn btn btn-outline-primary" id="upvote-event-btn" data-event-id="' . $event['id'] . '">Upvote <i class="fas fa-thumbs-up"></i> <span class="badge bg-primary rounded-pill">' . $upvoteCount . '</span></button>';
         }
@@ -138,14 +139,15 @@ function get_event_html($eventId)
     $event = $eventManager->get_event($eventId);
     $formattedDate = (new DateTime($event['date']))->format('m/d/Y h:i a');
     $organizer = $userManager->get_user($event["organizer"]);
+    $participants = $event["participants"];
     $reviews = $eventManager->get_reviews($eventId);
     $reviewForm = "";
     $reviewsHtml = "";
 
-    if ($userData) {
+    if ($userData && ($userData["type"] === "admin" || ($userData["type"] === "organizer" && $userData["id"] === $organizer["id"]) || in_array($userData["id"], $participants))) {
         $reviewForm =
             '<h2>Leave a Review</h2>
-            <form action="create_review.php" method="POST">
+            <form action="events.php" method="POST">
                 <div class="mb-3">
                     <input type="hidden" name="eventId" value="' . $eventId . '">
                     <textarea class="form-control" rows="3" placeholder="Write your review here" name="review"></textarea>
@@ -160,18 +162,20 @@ function get_event_html($eventId)
 
     foreach ($reviews as $review) {
         $user = $userManager->get_user($review["userId"]);
-
+        $deleteReviewBtn = "";
+        if ($userData && ($userData["type"] === "admin" || ($userData["type"] === "organizer" && $userData["id"] === $organizer["id"]) || $review["userId"] === $userData["id"])) {
+            $deleteReviewBtn = '<button class="action-btn btn btn-danger btn-sm" id="delete-review-btn" data-review-id="' . $review["id"] . '">X</button>';
+        }
         $reviewsHtml .=
             '<div class="list-group-item d-flex justify-content-between align-items-start">
                 <div>
                     <h6 class="mb-1">' . $user["name"] . ' <small class="text-muted">@' . $user["username"] . '</small></h6>
                     <p class="mb-1">' . $review["review"] . '</p>
                 </div>
-                ' . ($review["userId"] === $userData["id"] ? '<button class="action-btn btn btn-danger btn-sm" id="delete-review-btn" data-review-id="' . $review["id"] . '">X</button>' : '') . '
+                ' . $deleteReviewBtn . '
             </div>';
     }
 
-    $participants = $event["participants"];
     $participantsHtml = "";
     if (empty($participants)) {
         $participantsHtml = '<p class="lead">No participants yet.</p>';
@@ -179,7 +183,12 @@ function get_event_html($eventId)
 
     foreach ($participants as $participant) {
         $user = $userManager->get_user($participant);
-        $participantsHtml .= '<li class="list-group-item">' . $user["name"] . ' <small class="text-muted">@' . $user["username"] . '</small></li>';
+        $kickButtonHtml = "";
+        if ($userData && ($userData["type"] === "admin" || ($userData["type"] === "organizer" && $userData["id"] === $organizer["id"]))) {
+            $kickButtonHtml = '<button class="action-btn btn btn-sm btn-danger" id="kick-participant-btn" data-userid="' . $user["id"] . '" data-event-id="' . $event["id"] . '">Kick</button>';
+        }
+        $participantsHtml .= '<li class="list-group-item d-flex justify-content-between align-items-center">' .
+            $user["name"] . ' <small class="text-muted">@' . $user["username"] . '</small>' . $kickButtonHtml . '</li>';
     }
 
     $html = <<<EVENTHTML
@@ -219,23 +228,25 @@ function get_event_html($eventId)
 
 function get_organizer_settings_html()
 {
-    global $eventManager, $userManager;
+    global $eventManager, $userManager, $userData;
     $participationRequests = $eventManager->get_all_participation_request();
     $participationRequestsHtml = "";
 
     foreach ($participationRequests as $eventId => $participationRequest) {
         $event = $eventManager->get_event($eventId);
-        foreach ($participationRequest as $participant) {
-            $user = $userManager->get_user($participant);
-            $participationRequestsHtml .=
-                '<tr>
-                    <td>' . $event["title"] . '</td>
-                    <td>' . $user["username"] . '</td>
-                    <td>
-                        <button type="button" class="action-btn btn btn-success" id="accept-organizer-request-btn" data-userid="' . $user["id"] . '">Accept</button>
-                        <button type="button" class="action-btn btn btn-danger" id="reject-organizer-request-btn" data-userid="' . $user["id"] . '">Reject</button>
-                    </td>
-                </tr>';
+        if ($userData["type"] === "admin" || ($userData["type"] === "organizer" && $event["organizer"] === $userData["id"])) {
+            foreach ($participationRequest as $participant) {
+                $user = $userManager->get_user($participant);
+                $participationRequestsHtml .=
+                    '<tr>
+                        <td>' . $event["title"] . '</td>
+                        <td>' . $user["username"] . '</td>
+                        <td>
+                            <button type="button" class="action-btn btn btn-success" id="accept-join-request-btn" data-userid="' . $user["id"] . '" data-event-id="' . $event["id"] . '">Accept</button>
+                            <button type="button" class="action-btn btn btn-danger" id="reject-join-request-btn" data-userid="' . $user["id"] . '" data-event-id="' . $event["id"] . '">Reject</button>
+                        </td>
+                    </tr>';
+            }
         }
     }
 
@@ -338,7 +349,7 @@ function get_admin_settings_html()
                     <thead>
                     <tr>
                         <th>Username</th>
-                        <th>Role</th>
+                        <th class="user-type">Role</th>
                         <th>Actions</th>
                     </tr>
                     </thead>
@@ -349,6 +360,50 @@ function get_admin_settings_html()
             </div>
         </div>
     HTMLBODY;
+
+    return $html;
+}
+
+function get_notifs_html()
+{
+    global $notifManager, $userManager, $userData;
+    $html = "";
+    if ($userData) {
+        $uid = $userManager->extract_userid($userData["id"]);
+        $notifs = array_reverse($notifManager->get_user_notification($uid));
+
+        foreach ($notifs as $notif) {
+            $timeDiff = (new DateTime(date('Y-m-d\TH:i')))->diff(new DateTime($notif["timestamp"]));
+            $formattedTime = 'Just now';
+            if ($timeDiff->y > 0) {
+                $formattedTime = "A long time ago";
+            }
+            if ($timeDiff->d > 0) {
+                $formattedTime = $timeDiff->d . " days ago";
+            } else if ($timeDiff->h > 0) {
+                $formattedTime = $timeDiff->h . " hours ago";
+            }
+            if ($timeDiff->i > 0) {
+                $formattedTime = $timeDiff->i . " minutes ago";
+            }
+
+            $html .= <<<HTMLBODY
+            <div class="col">
+                <div class="card shadow bg-light">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h5 class="card-title">{$notif["title"]}</h5>
+                            <small class="text-muted">{$formattedTime}</small>
+                        </div>
+                        <p class="card-text text-muted text-truncate">{$notif["body"]}</p>
+    
+                        <button class="action-btn btn btn-outline-danger btn-sm" id="delete-notif-btn" data-notif-id="{$notif["id"]}">Delete</a>
+                    </div>
+                </div>
+            </div>
+            HTMLBODY;
+        }
+    }
 
     return $html;
 }

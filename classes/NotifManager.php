@@ -15,11 +15,17 @@ class NotifManager
         }
 
         $data = file_get_contents($this->notifsJsonFile);
+        if (!$data) {
+            return [];
+        }
         return json_decode($data, true);
     }
 
-    function create_notifications($title, $body, $timestamp, $subscribers = [])
+    function create_notifications($title, $body, $subscribers = [], $timestamp = null)
     {
+        if ($timestamp === null) {
+            $timestamp = date('Y-m-d\TH:i');
+        }
         $data = $this->get_json_data();
         $notifData = [
             "id" => uniqid("notif"),
@@ -35,7 +41,7 @@ class NotifManager
 
     function remove_notifications($notifId)
     {
-        $data = get_json_data($this->notifsJsonFile);
+        $data = $this->get_json_data($this->notifsJsonFile);
 
         unset($data[$notifId]);
         file_put_contents($this->notifsJsonFile, json_encode($data, JSON_PRETTY_PRINT));
@@ -43,7 +49,7 @@ class NotifManager
 
     function add_user_notification($userId, $notifId)
     {
-        $data = get_json_data($this->notifsJsonFile);
+        $data = $this->get_json_data($this->notifsJsonFile);
 
         $data[$notifId]["subscribers"][] = $userId;
         file_put_contents($this->notifsJsonFile, json_encode($data, JSON_PRETTY_PRINT));
@@ -51,7 +57,7 @@ class NotifManager
 
     function remove_user_notification($userId, $notifId)
     {
-        $data = get_json_data($this->notifsJsonFile);
+        $data = $this->get_json_data($this->notifsJsonFile);
 
         $data[$notifId]["subscribers"] = array_diff($data[$notifId]["subscribers"], [$userId]);
         file_put_contents($this->notifsJsonFile, json_encode($data, JSON_PRETTY_PRINT));
@@ -59,7 +65,7 @@ class NotifManager
 
     function get_user_notification($userId)
     {
-        $data = get_json_data($this->notifsJsonFile);
+        $data = $this->get_json_data($this->notifsJsonFile);
         $userNotifs = [];
         foreach ($data as $notifData) {
             if (in_array($userId, $notifData["subscribers"])) {

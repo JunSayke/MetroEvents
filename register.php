@@ -8,7 +8,7 @@ if ($userData) {
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = sanitize_inputs($_POST["name"]);
-    $username = sanitize_inputs($_POST["username"]);
+    $username = strtolower(sanitize_inputs($_POST["username"]));
     $password = sanitize_inputs($_POST["password"]);
     $confirmPassword = sanitize_inputs($_POST["confirm_password"]);
 

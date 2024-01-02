@@ -63,7 +63,7 @@ class EventManager
         return $eventData;
     }
 
-    function cancel_event($eventId, $reason)
+    function cancel_event($eventId)
     {
         // $eventData = $this->get_event($eventId);
         // $notifId = create_notifications([
@@ -83,8 +83,26 @@ class EventManager
         file_put_contents($this->pendingParticipationJsonFile, json_encode($data, JSON_PRETTY_PRINT));
 
         $reviewData = $this->get_json_data($this->reviewsJsonFile);
-        unset($reviewData[$eventId]);
+        foreach ($reviewData as $reviewId => $review) {
+            if ($review["eventId"] == $eventId) {
+                unset($reviewData[$reviewId]);
+            }
+        }
         file_put_contents($this->reviewsJsonFile, json_encode($reviewData, JSON_PRETTY_PRINT));
+    }
+
+    function get_upcoming_events()
+    {
+        $eventsId = $this->get_all_events();
+        $upcomingEvents = [];
+        foreach ($eventsId as $eventId) {
+            $event = $this->get_event($eventId);
+            $timeDiff = (new DateTime(date('Y-m-d\TH:i')))->diff(new DateTime($event["date"]));
+            if ($timeDiff->days < 2) {
+                $upcomingEvents[] = $event;
+            }
+        }
+        return $upcomingEvents;
     }
 
     function create_review($review, $author, $eventId)
@@ -185,5 +203,12 @@ class EventManager
 
         $data[$eventId] = array_diff($data[$eventId], [$userId]);
         file_put_contents($this->pendingParticipationJsonFile, json_encode($data, JSON_PRETTY_PRINT));
+    }
+
+    function remove_user_from_event($userId, $eventId)
+    {
+        $data = $this->get_event($eventId);
+        $data["participants"] = array_diff($data["participants"], [$userId]);
+        file_put_contents($this->get_event_json_path($data["id"]), json_encode($data, JSON_PRETTY_PRINT));
     }
 }

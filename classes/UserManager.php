@@ -86,6 +86,19 @@ class UserManager
         file_put_contents($filepath, json_encode($userData, JSON_PRETTY_PRINT));
     }
 
+    function change_user_password($userId, $newPassword)
+    {
+        $userData = $this->get_user($userId);
+
+        $userData["password"] = $newPassword;
+        file_put_contents($this->get_user_json_path($userId), json_encode($userData, JSON_PRETTY_PRINT));
+    }
+
+    function delete_user_json($userId)
+    {
+        unlink($this->get_user_json_path($userId));
+    }
+
     function get_user($userId)
     {
         return $this->get_json_data($this->userid_exist($userId));

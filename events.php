@@ -1,5 +1,11 @@
 <?php
 include("helper.php");
+
+if ($_SERVER["REQUEST_METHOD"] === "POST" && $userData !== null && isset($_POST["review"]) && isset($_POST["eventId"])) {
+    $eventManager->create_review(sanitize_inputs($_POST["review"]), $userData["id"], $_POST["eventId"]);
+    header("Location: " . $_SERVER['HTTP_REFERER']);
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -15,6 +21,28 @@ include("helper.php");
 </head>
 
 <body>
+    <div id="cancel-event-modal" class="modal fade" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cancel Event</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="cancel-event-form">
+                        <div class="form-group">
+                            <label for="reason">Reason for Cancellation:</label>
+                            <textarea class="form-control" id="reason" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-danger" form="cancel-event-form">Cancel Event</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <?php
     include("header.php");
     $html = "";

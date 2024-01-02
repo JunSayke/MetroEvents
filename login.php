@@ -7,7 +7,7 @@ if ($userData) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = sanitize_inputs($_POST["username"]);
+    $username = strtolower(sanitize_inputs($_POST["username"]));
     $password = sanitize_inputs($_POST["password"]);
 
     $result = login($username, $userManager->hash_password($password));

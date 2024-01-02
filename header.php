@@ -22,14 +22,12 @@
                             <a class="nav-link" href="notifications.php">
                                 Notifications
                             </a>
-                        </li>';
-                    if ($userData["type"] === "organizer" || $userData["type"] === "admin") {
-                        echo '<li class="nav-item">
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="settings.php">
                                 Settings
                             </a>
                         </li>';
-                    }
                 }
                 ?>
             </ul>

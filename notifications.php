@@ -24,31 +24,7 @@ if ($userData === null) {
         <h1 class="display-6 text-center mb-4">Your Notifications</h1>
         <hr>
         <div class="row row-cols-1 row-cols-md-2 g-4">
-            <div class="col">
-                <div class="card shadow bg-light">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <h5 class="card-title">Notification Title 1</h5>
-                            <small class="text-muted">4 hours ago</small>
-                        </div>
-                        <p class="card-text text-muted text-truncate">Notification body text goes here.</p>
-
-                        <a href="#" class="btn btn-primary">View Details</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card shadow bg-light">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <h5 class="card-title">Notification Title 2</h5>
-                            <small class="text-muted">A long time ago</small>
-                        </div>
-                        <p class="card-text text-muted text-truncate">Notification body text goes here.</p>
-                        <a href="#" class="btn btn-primary">View Details</a>
-                    </div>
-                </div>
-            </div>
+            <?php echo get_notifs_html() ?>
         </div>
     </div>
 

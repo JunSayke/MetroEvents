@@ -1,7 +1,7 @@
 <?php
 include("helper.php");
 
-if ($userData === null || $userData["type"] !== "organizer") {
+if ($userData === null || ($userData["type"] !== "admin" && $userData["type"] !== "organizer")) {
     header("Location: unauthorized.php");
     exit();
 }
@@ -15,7 +15,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $result = $eventManager->create_event_json($title, $description, $category, $date, $userData["id"]);
 
     if ($result) {
-        header("Location: " . $_SERVER["PHP_SELF"]);
+        header("Location: ?event_created");
     }
     exit();
 }
@@ -38,6 +38,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <?php include("header.php") ?>
     <div class="container py-5">
         <h2 class="mb-4">Create a New Event</h2>
+        <?php
+        if (isset($_GET["event_created"])) {
+            echo '<div class="alert alert-success" role="alert">Event created successfully!</div>';
+        }
+        ?>
         <form action="<?php $_SERVER["PHP_SELF"] ?>" method="post">
             <div class="mb-3">
                 <label for="title" class="form-label">Title</label>
