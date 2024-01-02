@@ -22,10 +22,13 @@ class UserManager
     function get_json_data($filepath)
     {
         if (!file_exists($filepath)) {
-            throw new Exception("Filepath cannot be found.");
+            return [];
         }
 
         $data = file_get_contents($filepath);
+        if (!$data) {
+            return [];
+        }
         return json_decode($data, true);
     }
 

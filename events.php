@@ -55,10 +55,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $userData !== null && isset($_POST[
             HTMLBODY;
     } else {
         $button = "";
-        if ($userData !== null) {
+        if ($userData) {
+            $uid = $userManager->extract_userid($userData["id"]);
             if ($userData["type"] === "organizer" || $userData["type"] === "admin") {
                 $button = '<a href="new_event.php" class="action-btn btn btn-success" id="create-event-btn">Create New Event</a>';
-            } else if (in_array($userData["id"], $userManager->get_request_organizer_list())) {
+            } else if (in_array($uid, $userManager->get_request_organizer_list())) {
                 $button = '<button class="action-btn btn btn-outline-danger" id="cancel-organizer-request-btn">Cancel Request</button>';
             } else {
                 $button = '<button class="action-btn btn btn-outline-success" id="organizer-request-btn">Become Organizer</button>';

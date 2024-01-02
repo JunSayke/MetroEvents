@@ -74,4 +74,15 @@ class NotifManager
         }
         return $userNotifs;
     }
+
+    function clean_notifications()
+    {
+        $data = $this->get_json_data($this->notifsJsonFile);
+        foreach ($data as $notifId => $notifData) {
+            if (empty($notifData["subscribers"])) {
+                unset($data[$notifId]);
+            }
+        }
+        file_put_contents($this->notifsJsonFile, json_encode($data, JSON_PRETTY_PRINT));
+    }
 }

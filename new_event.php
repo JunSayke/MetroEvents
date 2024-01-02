@@ -11,8 +11,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $description = sanitize_inputs($_POST["description"]);
     $category = sanitize_inputs($_POST["category"]);
     $date = sanitize_inputs($_POST["date"]);
-
-    $result = $eventManager->create_event_json($title, $description, $category, $date, $userData["id"]);
+    $uid = $userManager->extract_userid($userData["id"]);
+    $result = $eventManager->create_event_json($title, $description, $category, $date, $uid, [$uid]);
 
     if ($result) {
         header("Location: ?event_created");

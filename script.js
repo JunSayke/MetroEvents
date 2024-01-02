@@ -23,11 +23,7 @@ $(document).ready(function () {
 					},
 					success: (data) => {
 						if (data.success) {
-							$(this).attr("id", "cancel-join-event-btn")
-							$(this)
-								.removeClass("btn-outline-success")
-								.addClass("btn-outline-danger")
-							$(this).text("Cancel Request")
+							location.reload()
 						}
 					},
 				})
@@ -42,11 +38,7 @@ $(document).ready(function () {
 					},
 					success: (data) => {
 						if (data.success) {
-							$(this).attr("id", "join-event-btn")
-							$(this)
-								.removeClass("btn-outline-danger")
-								.addClass("btn-outline-success")
-							$(this).text("Join")
+							location.reload()
 						}
 					},
 				})
@@ -155,7 +147,7 @@ $(document).ready(function () {
 					},
 					success: (data) => {
 						if (data.success) {
-							$(this).closest("tr").remove()
+							location.reload()
 						}
 					},
 				})
@@ -170,7 +162,7 @@ $(document).ready(function () {
 					},
 					success: (data) => {
 						if (data.success) {
-							$(this).closest("tr").remove()
+							location.reload()
 						}
 					},
 				})
@@ -185,7 +177,7 @@ $(document).ready(function () {
 					},
 					success: (data) => {
 						if (data.success) {
-							$(this).parent().remove()
+							location.reload()
 						}
 					},
 				})
@@ -201,7 +193,7 @@ $(document).ready(function () {
 					},
 					success: (data) => {
 						if (data.success) {
-							$(this).closest("tr").remove()
+							location.reload()
 						}
 					},
 				})
@@ -217,7 +209,7 @@ $(document).ready(function () {
 					},
 					success: (data) => {
 						if (data.success) {
-							$(this).closest("tr").remove()
+							location.reload()
 						}
 					},
 				})

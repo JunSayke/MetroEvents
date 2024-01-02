@@ -19,14 +19,9 @@ if ($userData === null) {
 </head>
 
 <body>
-    <?php include("header.php") ?>
-    <div class="container py-5">
-        <h1 class="display-6 text-center mb-4">Your Notifications</h1>
-        <hr>
-        <div class="row row-cols-1 row-cols-md-2 g-4">
-            <?php echo get_notifs_html() ?>
-        </div>
-    </div>
+    <?php include("header.php");
+    echo get_notifs_html();
+    ?>
 
     <?php include("footer.php") ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>

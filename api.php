@@ -53,7 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             case "leave_event":
                 if ($userData && isset($_POST["eventId"])) {
                     $data = array("success" => 1, "userId" => $userData["id"], "eventId" => $_POST["eventId"]);
-                    $uid = $userManager->extract_userid($_POST["userId"]);
+                    $uid = $userManager->extract_userid($userData["id"]);
                     $eventManager->remove_user_from_event($uid, $_POST["eventId"]);
                     echo json_encode($data);
                     exit();
@@ -80,7 +80,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             case "organizer_request":
                 if ($userData) {
                     $data = array("success" => 1, "userId" => $userData["id"]);
-                    $userManager->request_organizer($userData["id"]);
+                    $uid = $userManager->extract_userid($userData["id"]);
+                    $userManager->request_organizer($uid);
                     echo json_encode($data);
                     exit();
                 }
@@ -97,8 +98,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             case "accept_organizer_request":
                 if ($userData && isset($_POST["userId"])) {
                     $data = array("success" => 1, "userId" => $_POST["userId"]);
-                    $userManager->accept_organizer($_POST["userId"]);
-                    $notifManager->create_notifications("Request Approved.", "Your application to become an organizer has been accepted.", [$_POST["userId"]]);
+                    $uid = $userManager->extract_userid($_POST["userId"]);
+                    $userManager->accept_organizer($uid);
+                    $notifManager->create_notifications("Request Approved.", "Your application to become an organizer has been accepted.", [$uid]);
                     echo json_encode($data);
                     exit();
                 }
@@ -106,8 +108,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             case "reject_organizer_request":
                 if ($userData && isset($_POST["userId"])) {
                     $data = array("success" => 1, "userId" => $_POST["userId"]);
-                    $userManager->cancel_organizer_request($_POST["userId"]);
-                    $notifManager->create_notifications("Request Rejected.", "Your application to become an organizer has been denied.", [$_POST["userId"]]);
+                    $uid = $userManager->extract_userid($_POST["userId"]);
+                    $userManager->cancel_organizer_request($uid);
+                    $notifManager->create_notifications("Request Rejected.", "Your application to become an organizer has been denied.", [$uid]);
                     echo json_encode($data);
                     exit();
                 }
@@ -192,6 +195,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $data = array("success" => 1, "notifId" => $_POST["notifId"]);
                     $uid = $userManager->extract_userid($userData["id"]);
                     $notifManager->remove_user_notification($uid, $_POST["notifId"]);
+                    $notifManager->clean_notifications();
                     echo json_encode($data);
                     exit();
                 }

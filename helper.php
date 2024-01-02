@@ -112,7 +112,7 @@ function get_events_html()
         $organizer = $userManager->get_user($event["organizer"]);
         $html .= <<<EVENTHTML
         <div class="row">
-            <div class="col-12 py-3 bg-light shadow">
+            <div class="col-12 py-3 my-3 bg-light shadow">
                 <div class="d-flex justify-content-between align-items-center">
                     <h4>{$event['title']}</h4>
                     <span class="badge bg-secondary rounded-pill">Participants: {$participantCount}</span>
@@ -144,7 +144,7 @@ function get_event_html($eventId)
     $reviewForm = "";
     $reviewsHtml = "";
 
-    if ($userData && ($userData["type"] === "admin" || ($userData["type"] === "organizer" && $userData["id"] === $organizer["id"]) || in_array($userData["id"], $participants))) {
+    if ($userData && ($userData["type"] === "admin" || in_array($userManager->extract_userid($userData["id"]), $participants))) {
         $reviewForm =
             '<h2>Leave a Review</h2>
             <form action="events.php" method="POST">
@@ -183,12 +183,14 @@ function get_event_html($eventId)
 
     foreach ($participants as $participant) {
         $user = $userManager->get_user($participant);
-        $kickButtonHtml = "";
-        if ($userData && ($userData["type"] === "admin" || ($userData["type"] === "organizer" && $userData["id"] === $organizer["id"]))) {
-            $kickButtonHtml = '<button class="action-btn btn btn-sm btn-danger" id="kick-participant-btn" data-userid="' . $user["id"] . '" data-event-id="' . $event["id"] . '">Kick</button>';
+        if (!empty($user)) {
+            $kickButtonHtml = "";
+            if ($userData && ($userData["type"] === "admin" || ($userData["type"] === "organizer" && $userData["id"] === $organizer["id"]))) {
+                $kickButtonHtml = '<button class="action-btn btn btn-sm btn-danger" id="kick-participant-btn" data-userid="' . $user["id"] . '" data-event-id="' . $event["id"] . '">Kick</button>';
+            }
+            $participantsHtml .= '<li class="list-group-item d-flex justify-content-between align-items-center">' .
+                $user["name"] . ' <small class="text-muted">@' . $user["username"] . '</small>' . $kickButtonHtml . '</li>';
         }
-        $participantsHtml .= '<li class="list-group-item d-flex justify-content-between align-items-center">' .
-            $user["name"] . ' <small class="text-muted">@' . $user["username"] . '</small>' . $kickButtonHtml . '</li>';
     }
 
     $html = <<<EVENTHTML
@@ -234,7 +236,7 @@ function get_organizer_settings_html()
 
     foreach ($participationRequests as $eventId => $participationRequest) {
         $event = $eventManager->get_event($eventId);
-        if ($userData["type"] === "admin" || ($userData["type"] === "organizer" && $event["organizer"] === $userData["id"])) {
+        if ($userData && ($userData["type"] === "admin" || ($userData["type"] === "organizer" && $event["organizer"] === $userManager->extract_userid($userData["id"])))) {
             foreach ($participationRequest as $participant) {
                 $user = $userManager->get_user($participant);
                 $participationRequestsHtml .=
@@ -372,6 +374,12 @@ function get_notifs_html()
         $uid = $userManager->extract_userid($userData["id"]);
         $notifs = array_reverse($notifManager->get_user_notification($uid));
 
+        if (empty($notifs)) {
+            $html = '<p class="lead text-center">No notifications yet.</p>';
+        }
+
+        $notifsHtml = "";
+
         foreach ($notifs as $notif) {
             $timeDiff = (new DateTime(date('Y-m-d\TH:i')))->diff(new DateTime($notif["timestamp"]));
             $formattedTime = 'Just now';
@@ -387,7 +395,7 @@ function get_notifs_html()
                 $formattedTime = $timeDiff->i . " minutes ago";
             }
 
-            $html .= <<<HTMLBODY
+            $notifsHtml .= <<<HTMLBODY
             <div class="col">
                 <div class="card shadow bg-light">
                     <div class="card-body">
@@ -403,6 +411,16 @@ function get_notifs_html()
             </div>
             HTMLBODY;
         }
+        $html = <<<HTMLBODY
+        <div class="container py-5">
+            <h1 class="display-6 text-center mb-4">Your Notifications</h1>
+            <hr>
+            {$html}
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+                {$notifsHtml}
+            </div>
+        </div>
+        HTMLBODY;
     }
 
     return $html;
